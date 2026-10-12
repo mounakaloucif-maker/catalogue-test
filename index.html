@@ -228,6 +228,8 @@ const valuesOf = (item, f) => { const v = item[f.key]; return Array.isArray(v) ?
 
 let DATA = [];
 let mode = "demo";   // "demo" (données fictives) ou "grist" (données du tableau)
+let received = false;        // Grist a-t-il déjà envoyé des données ?
+let waitedTooLong = false;   // plus de 6 secondes sans données
 
 /* Noms de colonnes reconnus dans Grist (sans accents, majuscules ni espaces) */
 const FIELD_ALIASES = {
@@ -348,7 +350,14 @@ function render() {
         <div class="tags">${it.especes.map(e => `<span class="tag">${esc(e)}</span>`).join("")}</div>
       </div>
     </article>`).join("")
-  : `<div class="empty"><p>${DATA.length ? "Aucun équipement ne correspond à ces critères. Retirez un filtre pour élargir la recherche." : (mode === "grist" ? "Aucun équipement dans le tableau Grist pour le moment." : "Chargement des équipements…")}</p>${DATA.length ? '<button class="btn ghost" type="button" data-reset>Réinitialiser les filtres</button>' : ""}</div>`;
+  : `<div class="empty"><p>${DATA.length ? "Aucun équipement ne correspond à ces critères. Retirez un filtre pour élargir la recherche." : emptyMessage()}</p>${DATA.length ? '<button class="btn ghost" type="button" data-reset>Réinitialiser les filtres</button>' : ""}</div>`;
+}
+
+function emptyMessage() {
+  if (mode !== "grist") return "Chargement des équipements…";
+  if (received) return "Aucun équipement dans le tableau Grist pour le moment.";
+  if (waitedTooLong) return "Grist n'a envoyé aucune donnée. Dans le panneau du widget, vérifiez que le niveau d'accès est « Lire la table » et que les colonnes sont cochées (« Sélectionner tout »).";
+  return "Chargement des équipements…";
 }
 
 function resetAll() { state.q = ""; state.sel = {}; $("#q").value = ""; render(); }
@@ -439,10 +448,11 @@ function startGrist(origin) {
   sc.src = origin.replace(/\/$/, "") + "/grist-plugin-api.js";
   sc.onload = () => {
     grist.ready({ requiredAccess: "read table" });
-    grist.onRecords(recs => { setData(recs.map(fromRecord)); openFromHash(); }, { includeColumns: "normal" });
+    grist.onRecords(recs => { received = true; setData(recs.map(fromRecord)); openFromHash(); });
   };
   sc.onerror = () => startDemo();
   document.head.appendChild(sc);
+  setTimeout(() => { if (!received && mode === "grist") { waitedTooLong = true; render(); } }, 6000);
 }
 
 if (window.self === window.top) {
@@ -453,6 +463,7 @@ if (window.self === window.top) {
     try { origin = new URL(document.referrer).origin; } catch (e) { origin = ""; }
   }
   if (!origin || origin === location.origin) origin = "https://docs.getgrist.com";
+  mode = "grist";
   render();
   startGrist(origin);
 }
