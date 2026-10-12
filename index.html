@@ -139,15 +139,17 @@ dd .tags{padding:0;margin:0}
 
 <script>
 /* ---------- Réglages ---------- */
+const params = new URLSearchParams(location.search);
 const CONFIG = {
-  formUrl: "",   // adresse du formulaire Grist « Proposer un équipement »
-  demo: true     // passer à false quand les vraies données sont en place
+  // Adresse du formulaire « Proposer un équipement » (ou l'ajouter à l'adresse du widget : ...?form=https://...)
+  formUrl: params.get("form") || "",
+  // Serveur Grist (laisser vide : détection automatique ; ou ...?grist=https://mon-grist.exemple.fr)
+  gristOrigin: params.get("grist") || ""
 };
 
-/* ---------- Données ----------
-   Dans la version finale, ce tableau est généré automatiquement depuis Grist.
-   Les données ci-dessous sont fictives. */
-const DATA = [
+/* ---------- Données de démonstration ----------
+   Affichées uniquement quand la page est ouverte hors de Grist. Elles sont fictives. */
+const DEMO_DATA = [
   {id:"dac-bocage", nom:"Distributeur automatique de concentré – bovins", type:"DAC", unite:"UE Bocage", region:"Bretagne",
    especes:["Bovin"], thematiques:["Alimentation","Comportement"], caracteres:["Ingestion","Activité"], donnees:["Séries temporelles"],
    entreprise:"Agrisens", photo:"", contact:"equipements@exemple.fr",
@@ -224,10 +226,67 @@ const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp
 const norm = s => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 const valuesOf = (item, f) => { const v = item[f.key]; return Array.isArray(v) ? v : (v ? [v] : []); };
 
-DATA.forEach(it => {
-  it._hay = norm([it.nom, it.description, it.type, it.unite, it.region, it.entreprise,
-    ...it.especes, ...it.thematiques, ...it.caracteres, ...it.donnees].join(" "));
-});
+let DATA = [];
+let mode = "demo";   // "demo" (données fictives) ou "grist" (données du tableau)
+
+/* Noms de colonnes reconnus dans Grist (sans accents, majuscules ni espaces) */
+const FIELD_ALIASES = {
+  id:          ["id2", "identifiant", "slug"],
+  nom:         ["nom", "nomequipement", "nomdelequipement", "equipement", "titre", "intitule"],
+  type:        ["type", "typedequipement"],
+  unite:       ["unite", "uniteexperimentale", "ue"],
+  region:      ["region"],
+  especes:     ["especes", "espece"],
+  thematiques: ["thematiques", "thematique", "thematiquederecherche", "thematiquesderecherche"],
+  caracteres:  ["caracteres", "caractere", "caracteremesure", "caracteresmesures"],
+  donnees:     ["donnees", "typededonnees", "typesdedonnees", "typedonnees"],
+  entreprise:  ["entreprise", "entreprises", "constructeur", "fabricant"],
+  description: ["description", "presentation", "resume"],
+  contact:     ["contact", "contacts"],
+  photo:       ["photo", "image", "illustration"]
+};
+const slug = s => norm(s).replace(/[^a-z0-9]/g, "");
+const asList = v => {
+  if (Array.isArray(v)) return (v[0] === "L" ? v.slice(1) : v).map(String);
+  return v ? String(v).split(/[;,]/).map(x => x.trim()).filter(Boolean) : [];
+};
+
+function fromRecord(rec) {
+  const byName = {};
+  Object.keys(rec).forEach(k => { byName[slug(k)] = rec[k]; });
+  const get = key => {
+    for (const a of FIELD_ALIASES[key]) {
+      const v = byName[a];
+      if (v !== undefined && v !== null && v !== "") return v;
+    }
+    return "";
+  };
+  const photo = get("photo");
+  return {
+    id: String(get("id") || rec.id),
+    nom: String(get("nom") || "(sans nom)"),
+    type: String(get("type")),
+    unite: String(get("unite")),
+    region: String(get("region")),
+    especes: asList(get("especes")),
+    thematiques: asList(get("thematiques")),
+    caracteres: asList(get("caracteres")),
+    donnees: asList(get("donnees")),
+    entreprise: String(get("entreprise")),
+    description: String(get("description")),
+    contact: String(get("contact")),
+    photo: typeof photo === "string" ? photo : ""
+  };
+}
+
+function setData(list) {
+  DATA = list;
+  DATA.forEach(it => {
+    it._hay = norm([it.nom, it.description, it.type, it.unite, it.region, it.entreprise,
+      ...it.especes, ...it.thematiques, ...it.caracteres, ...it.donnees].join(" "));
+  });
+  render();
+}
 
 const state = { q: "", sel: {} };
 
@@ -254,7 +313,8 @@ function refreshSelects() {
     const counts = {};
     DATA.forEach(it => valuesOf(it, f).forEach(v => { counts[v] = counts[v] || 0; }));
     pool.forEach(it => valuesOf(it, f).forEach(v => { counts[v]++; }));
-    const current = state.sel[f.key] || "";
+    let current = state.sel[f.key] || "";
+    if (current && !(current in counts)) { state.sel[f.key] = ""; current = ""; }
     const opts = Object.keys(counts).sort((a, b) => a.localeCompare(b, "fr"))
       .map(v => `<option value="${esc(v)}"${counts[v] === 0 && v !== current ? " disabled" : ""}${v === current ? " selected" : ""}>${esc(v)} (${counts[v]})</option>`);
     selects[f.key].innerHTML = `<option value="">Tous</option>` + opts.join("");
@@ -288,7 +348,7 @@ function render() {
         <div class="tags">${it.especes.map(e => `<span class="tag">${esc(e)}</span>`).join("")}</div>
       </div>
     </article>`).join("")
-  : `<div class="empty"><p>Aucun équipement ne correspond à ces critères. Retirez un filtre pour élargir la recherche.</p><button class="btn ghost" type="button" data-reset>Réinitialiser les filtres</button></div>`;
+  : `<div class="empty"><p>${DATA.length ? "Aucun équipement ne correspond à ces critères. Retirez un filtre pour élargir la recherche." : (mode === "grist" ? "Aucun équipement dans le tableau Grist pour le moment." : "Chargement des équipements…")}</p>${DATA.length ? '<button class="btn ghost" type="button" data-reset>Réinitialiser les filtres</button>' : ""}</div>`;
 }
 
 function resetAll() { state.q = ""; state.sel = {}; $("#q").value = ""; render(); }
@@ -328,7 +388,8 @@ function openDetail(id) {
       <dt>Contact</dt><dd>${esc(it.contact)}</dd>
     </dl>`;
   if (!dlg.open) dlg.showModal();
-  if (location.hash !== "#fiche-" + id) history.replaceState(null, "", "#fiche-" + id);
+  const h = "#fiche-" + encodeURIComponent(id);
+  if (location.hash !== h) history.replaceState(null, "", h);
 }
 
 $("#dclose").addEventListener("click", () => dlg.close());
@@ -337,7 +398,7 @@ dlg.addEventListener("close", () => {
   if (location.hash.startsWith("#fiche-")) history.replaceState(null, "", location.pathname + location.search);
 });
 window.addEventListener("hashchange", () => {
-  if (location.hash.startsWith("#fiche-")) openDetail(location.hash.slice(7));
+  if (location.hash.startsWith("#fiche-")) openDetail(decodeURIComponent(location.hash.slice(7)));
   else if (dlg.open) dlg.close();
 });
 
@@ -347,7 +408,7 @@ $("#propose").addEventListener("click", e => {
   if (CONFIG.formUrl) { e.currentTarget.href = CONFIG.formUrl; e.currentTarget.target = "_blank"; e.currentTarget.rel = "noopener"; return; }
   e.preventDefault();
   const t = $("#toast");
-  t.textContent = "Le formulaire n'est pas encore relié : il le sera à l'étape Grist.";
+  t.textContent = "Le lien du formulaire n'est pas encore configuré.";
   t.classList.add("on");
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove("on"), 4000);
@@ -360,9 +421,41 @@ mq.addEventListener("change", syncFilters);
 syncFilters();
 
 /* ---------- Démarrage ---------- */
-$("#demo").hidden = !CONFIG.demo;
-render();
-if (location.hash.startsWith("#fiche-")) openDetail(location.hash.slice(7));
+function openFromHash() {
+  if (location.hash.startsWith("#fiche-")) openDetail(decodeURIComponent(location.hash.slice(7)));
+}
+
+function startDemo() {
+  mode = "demo";
+  $("#demo").hidden = false;
+  setData(DEMO_DATA.map(it => Object.assign({}, it)));
+  openFromHash();
+}
+
+function startGrist(origin) {
+  mode = "grist";
+  $("#demo").hidden = true;
+  const sc = document.createElement("script");
+  sc.src = origin.replace(/\/$/, "") + "/grist-plugin-api.js";
+  sc.onload = () => {
+    grist.ready({ requiredAccess: "read table" });
+    grist.onRecords(recs => { setData(recs.map(fromRecord)); openFromHash(); }, { includeColumns: "normal" });
+  };
+  sc.onerror = () => startDemo();
+  document.head.appendChild(sc);
+}
+
+if (window.self === window.top) {
+  startDemo();                       // page ouverte seule : données fictives
+} else {
+  let origin = CONFIG.gristOrigin;   // page affichée dans Grist : lecture du tableau
+  if (!origin) {
+    try { origin = new URL(document.referrer).origin; } catch (e) { origin = ""; }
+  }
+  if (!origin || origin === location.origin) origin = "https://docs.getgrist.com";
+  render();
+  startGrist(origin);
+}
 </script>
 </body>
 </html>
