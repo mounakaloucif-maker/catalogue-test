@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Annuaire des équipements de phénotypage</title>
+<style>
+:root{
+  --lime:#b6dc2e;
+  --lime-soft:#e8f4b8;
+  --forest:#17381f;
+  --ink:#1d2b20;
+  --mute:#56675a;
+  --paper:#f3f6ec;
+  --card:#ffffff;
+  --line:#d3ddc4;
+  --link:#1d6a3b;
+  --focus:#0b57d0;
+  font-family: Seravek, "Gill Sans Nova", Ubuntu, Calibri, "DejaVu Sans", sans-serif;
+  color:var(--ink);
+}
+*{box-sizing:border-box}
+html{scroll-padding-top:1rem}
+body{margin:0;background:var(--paper);line-height:1.5;font-size:1rem}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+
+/* En-tête */
+.top{display:flex;gap:1.5rem;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;padding:2rem clamp(1rem,4vw,3rem) 1.5rem}
+.top h1{margin:0 0 .35rem;font-size:clamp(1.7rem,3.2vw,2.5rem);line-height:1.1;letter-spacing:-.02em;color:var(--forest);font-weight:700}
+.top p{margin:0;max-width:62ch;color:var(--mute)}
+.btn{display:inline-block;border:2px solid var(--forest);background:var(--forest);color:#fff;font:inherit;font-weight:600;padding:.65rem 1.1rem;border-radius:8px;text-decoration:none;cursor:pointer}
+.btn:hover{background:#0f2a16}
+.btn.ghost{background:transparent;color:var(--forest)}
+.btn.ghost:hover{background:var(--lime-soft)}
+
+/* Mise en page */
+.layout{display:grid;grid-template-columns:330px minmax(0,1fr);align-items:start}
+aside{background:var(--lime);color:var(--forest);padding:1.25rem 1.5rem 2rem;min-height:100%}
+aside summary{font-size:1.25rem;font-weight:700;cursor:pointer;margin-bottom:1rem;list-style:none}
+aside summary::-webkit-details-marker{display:none}
+.field{margin-bottom:1.1rem}
+.field label{display:block;font-size:1.05rem;font-weight:600;margin-bottom:.3rem}
+.field select,.field input{width:100%;font:inherit;color:var(--ink);background:#fff;border:1px solid #8aa11f;border-radius:6px;padding:.55rem .6rem}
+.field select option:disabled{color:#9aa39b}
+main{padding:0 clamp(1rem,4vw,3rem) 3rem}
+
+/* Barre de résultats */
+.bar{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin:.25rem 0 1.1rem}
+.count{font-size:1.15rem;font-weight:700;color:var(--forest);margin-right:.5rem}
+.chip{font:inherit;font-size:.9rem;background:var(--lime-soft);color:var(--forest);border:1px solid #b9cf63;border-radius:999px;padding:.2rem .7rem;cursor:pointer}
+.chip:hover{background:#d8ecA0}
+.reset{font:inherit;font-size:.9rem;background:none;border:0;color:var(--link);text-decoration:underline;cursor:pointer;padding:.2rem .3rem}
+.notice{background:var(--lime-soft);border:1px solid #b9cf63;border-radius:8px;padding:.6rem .9rem;margin-bottom:1rem;font-size:.95rem}
+
+/* Fiches */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1.1rem}
+.card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
+.card:hover{border-color:var(--forest)}
+.media{aspect-ratio:16/10;display:grid;place-items:center;text-align:center;padding:.8rem;color:var(--forest);font-weight:600;
+  background:repeating-linear-gradient(135deg,var(--lime-soft) 0 12px,#dcedA0 12px 24px)}
+.media img{width:100%;height:100%;object-fit:cover;display:block}
+.body{padding:.9rem 1rem 1.1rem;display:flex;flex-direction:column;gap:.45rem;flex:1}
+.body h3{margin:0;font-size:1.12rem;line-height:1.25}
+.open{font:inherit;font-weight:700;color:var(--forest);background:none;border:0;padding:0;text-align:left;cursor:pointer}
+.open::after{content:"";position:absolute;inset:0}
+.meta{margin:0;color:var(--mute);font-size:.92rem}
+.tags{display:flex;flex-wrap:wrap;gap:.35rem;margin-top:auto;padding-top:.3rem}
+.tag{background:var(--lime-soft);color:var(--forest);border-radius:999px;padding:.1rem .6rem;font-size:.82rem}
+.empty{grid-column:1/-1;background:var(--card);border:1px dashed var(--line);border-radius:10px;padding:2rem;text-align:center}
+.empty p{margin:0 0 .8rem}
+
+/* Détail */
+dialog{border:0;border-radius:12px;padding:0;width:min(740px,94vw);max-height:92vh;color:var(--ink)}
+dialog::backdrop{background:rgba(23,56,31,.6)}
+.dhead{display:flex;justify-content:space-between;gap:1rem;align-items:flex-start;padding:1.2rem 1.4rem .6rem}
+.dhead h2{margin:0;font-size:1.5rem;line-height:1.2;color:var(--forest)}
+.x{font:inherit;font-size:1.4rem;line-height:1;background:none;border:1px solid var(--line);border-radius:8px;width:2.4rem;height:2.4rem;cursor:pointer;color:var(--forest)}
+.dbody{padding:0 1.4rem 1.4rem}
+.dbody .media{border-radius:8px;margin-bottom:1rem}
+.dbody p{margin:.2rem 0 1rem}
+dl{display:grid;grid-template-columns:minmax(120px,190px) 1fr;gap:.55rem 1rem;margin:0}
+dt{font-weight:700;color:var(--forest)}
+dd{margin:0}
+dd .tags{padding:0;margin:0}
+
+#toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:var(--forest);color:#fff;padding:.7rem 1.1rem;border-radius:8px;max-width:90vw;display:none;z-index:10}
+#toast.on{display:block}
+
+@media (max-width:899px){
+  .layout{grid-template-columns:1fr}
+  aside{padding:1rem 1.2rem}
+  dl{grid-template-columns:1fr}
+  dt{margin-top:.4rem}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div>
+    <h1>Équipements de phénotypage</h1>
+    <p>Trouvez un équipement de mesure disponible dans les unités de l'institut : filtrez par espèce, type de matériel, région ou type de données, puis ouvrez la fiche pour voir les détails.</p>
+  </div>
+  <a class="btn" id="propose" href="#">Proposer un équipement</a>
+</header>
+
+<div class="layout">
+  <aside>
+    <details id="filtres" open>
+      <summary>Filtres</summary>
+      <div class="field">
+        <label for="q">Mot-clé</label>
+        <input id="q" type="search" placeholder="Par exemple : ingestion">
+      </div>
+      <div id="filters"></div>
+    </details>
+  </aside>
+
+  <main>
+    <div class="notice" id="demo" hidden>Page de démonstration : les équipements affichés sont fictifs.</div>
+    <div class="bar">
+      <span class="count" id="count" aria-live="polite"></span>
+      <span id="chips"></span>
+      <button class="reset" id="reset" type="button" hidden>Réinitialiser les filtres</button>
+    </div>
+    <div class="grid" id="results"></div>
+  </main>
+</div>
+
+<dialog id="detail" aria-labelledby="dtitle">
+  <div class="dhead">
+    <h2 id="dtitle"></h2>
+    <button class="x" id="dclose" type="button" aria-label="Fermer la fiche">×</button>
+  </div>
+  <div class="dbody" id="dbody"></div>
+</dialog>
+
+<div id="toast" role="status"></div>
+
+<script>
+/* ---------- Réglages ---------- */
+const CONFIG = {
+  formUrl: "",   // adresse du formulaire Grist « Proposer un équipement »
+  demo: true     // passer à false quand les vraies données sont en place
+};
+
+/* ---------- Données ----------
+   Dans la version finale, ce tableau est généré automatiquement depuis Grist.
+   Les données ci-dessous sont fictives. */
+const DATA = [
+  {id:"dac-bocage", nom:"Distributeur automatique de concentré – bovins", type:"DAC", unite:"UE Bocage", region:"Bretagne",
+   especes:["Bovin"], thematiques:["Alimentation","Comportement"], caracteres:["Ingestion","Activité"], donnees:["Séries temporelles"],
+   entreprise:"Agrisens", photo:"", contact:"equipements@exemple.fr",
+   description:"Enregistre la quantité de concentré consommée par chaque animal identifié, avec l'heure et la durée de chaque visite."},
+  {id:"dac-plaine", nom:"Distributeur automatique de concentré – porcs", type:"DAC", unite:"UE Plaine", region:"Centre-Val de Loire",
+   especes:["Porc"], thematiques:["Alimentation","Bien-être"], caracteres:["Ingestion","Poids"], donnees:["Séries temporelles"],
+   entreprise:"Agrisens", photo:"", contact:"equipements@exemple.fr",
+   description:"Poste d'alimentation individuel pour porcs en groupe, avec pesée à chaque passage."},
+  {id:"echo-littoral", nom:"Échographe portable", type:"Échographe", unite:"UE Littoral", region:"Normandie",
+   especes:["Bovin","Ovin"], thematiques:["Reproduction","Santé animale"], caracteres:["Composition corporelle"], donnees:["Images"],
+   entreprise:"Phénolab", photo:"", contact:"equipements@exemple.fr",
+   description:"Échographe léger pour mesurer l'épaisseur de gras et de muscle, utilisable en bâtiment ou en pâture."},
+  {id:"echo-altitude", nom:"Échographe de gestation", type:"Échographe", unite:"UE Altitude", region:"Auvergne-Rhône-Alpes",
+   especes:["Ovin","Caprin"], thematiques:["Reproduction"], caracteres:["Composition corporelle"], donnees:["Images"],
+   entreprise:"Phénolab", photo:"", contact:"equipements@exemple.fr",
+   description:"Diagnostic de gestation et comptage des fœtus chez les petits ruminants."},
+  {id:"balance-auto", nom:"Balance de pesée automatique", type:"Balance", unite:"UE Plaine", region:"Centre-Val de Loire",
+   especes:["Porc","Volaille"], thematiques:["Alimentation"], caracteres:["Poids"], donnees:["Séries temporelles"],
+   entreprise:"Zootronic", photo:"", contact:"equipements@exemple.fr",
+   description:"Pesée quotidienne sans manipulation, avec suivi de la croissance individuelle."},
+  {id:"balance-couloir", nom:"Balance de pesée en couloir", type:"Balance", unite:"UE Altitude", region:"Auvergne-Rhône-Alpes",
+   especes:["Ovin","Caprin","Bovin"], thematiques:["Alimentation","Santé animale"], caracteres:["Poids"], donnees:["Mesures ponctuelles"],
+   entreprise:"Zootronic", photo:"", contact:"equipements@exemple.fr",
+   description:"Balance intégrée à un couloir de contention, pour des pesées ponctuelles en lots."},
+  {id:"chambre-resp", nom:"Chambre respiratoire", type:"Chambre respiratoire", unite:"UE Littoral", region:"Normandie",
+   especes:["Bovin","Ovin"], thematiques:["Environnement","Alimentation"], caracteres:["Gaz (CH4)","Ingestion"], donnees:["Séries temporelles"],
+   entreprise:"ClimaTerra", photo:"", contact:"equipements@exemple.fr",
+   description:"Mesure des émissions de méthane et des échanges gazeux d'un animal pendant plusieurs jours."},
+  {id:"meteo-bocage", nom:"Station météo de site", type:"Station météo", unite:"UE Bocage", region:"Bretagne",
+   especes:["Bovin","Ovin","Porc","Volaille"], thematiques:["Environnement"], caracteres:["Température"], donnees:["Séries temporelles"],
+   entreprise:"ClimaTerra", photo:"", contact:"equipements@exemple.fr",
+   description:"Température, humidité, vent et pluviométrie enregistrés en continu sur le site expérimental."},
+  {id:"collier-acc", nom:"Collier accéléromètre", type:"Capteur portable", unite:"UE Altitude", region:"Auvergne-Rhône-Alpes",
+   especes:["Bovin","Caprin"], thematiques:["Comportement","Bien-être"], caracteres:["Activité"], donnees:["Séries temporelles","Données GPS"],
+   entreprise:"Agrisens", photo:"", contact:"equipements@exemple.fr",
+   description:"Suivi de l'activité, de la rumination et de la position des animaux au pâturage."},
+  {id:"camera-3d", nom:"Caméra 3D de morphologie", type:"Caméra", unite:"UE Plaine", region:"Centre-Val de Loire",
+   especes:["Porc","Bovin"], thematiques:["Bien-être","Santé animale"], caracteres:["Composition corporelle","Poids"], donnees:["Images"],
+   entreprise:"Mesuratech", photo:"", contact:"equipements@exemple.fr",
+   description:"Reconstruction du volume corporel pour estimer le poids et la conformation sans contact."},
+  {id:"analyseur-lait", nom:"Analyseur de lait en ligne", type:"Analyseur", unite:"UE Bocage", region:"Bretagne",
+   especes:["Bovin","Caprin"], thematiques:["Santé animale","Alimentation"], caracteres:["Production laitière"], donnees:["Séries temporelles"],
+   entreprise:"Mesuratech", photo:"", contact:"equipements@exemple.fr",
+   description:"Analyse de la composition du lait à chaque traite, intégrée à la salle de traite."},
+  {id:"capteur-rumen", nom:"Capteur de température ruminale", type:"Capteur portable", unite:"UE Littoral", region:"Normandie",
+   especes:["Bovin"], thematiques:["Santé animale"], caracteres:["Température"], donnees:["Séries temporelles"],
+   entreprise:"Mesuratech", photo:"", contact:"equipements@exemple.fr",
+   description:"Bolus ingérable qui transmet la température interne de l'animal en continu."},
+  {id:"camera-thermique", nom:"Caméra thermique", type:"Caméra", unite:"UE Altitude", region:"Auvergne-Rhône-Alpes",
+   especes:["Ovin","Bovin"], thematiques:["Bien-être","Santé animale"], caracteres:["Température"], donnees:["Images"],
+   entreprise:"ClimaTerra", photo:"", contact:"equipements@exemple.fr",
+   description:"Imagerie infrarouge pour repérer les zones d'inflammation ou de stress thermique."},
+  {id:"poulailler", nom:"Poulailler instrumenté", type:"Bâtiment instrumenté", unite:"UE Plaine", region:"Centre-Val de Loire",
+   especes:["Volaille"], thematiques:["Bien-être","Comportement"], caracteres:["Activité","Poids"], donnees:["Images","Séries temporelles"],
+   entreprise:"Zootronic", photo:"", contact:"equipements@exemple.fr",
+   description:"Bâtiment équipé de caméras, de balances et de capteurs d'ambiance pour étudier le comportement du lot."}
+];
+
+/* ---------- Filtres (ordre d'affichage) ---------- */
+const FILTERS = [
+  {key:"type",        label:"Type d'équipement"},
+  {key:"unite",       label:"Unité expérimentale"},
+  {key:"especes",     label:"Espèce"},
+  {key:"thematiques", label:"Thématique de recherche"},
+  {key:"caracteres",  label:"Caractère mesuré"},
+  {key:"donnees",     label:"Type de données"},
+  {key:"entreprise",  label:"Entreprise"},
+  {key:"region",      label:"Région"}
+];
+
+/* ---------- Outils ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm = s => String(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const valuesOf = (item, f) => { const v = item[f.key]; return Array.isArray(v) ? v : (v ? [v] : []); };
+
+DATA.forEach(it => {
+  it._hay = norm([it.nom, it.description, it.type, it.unite, it.region, it.entreprise,
+    ...it.especes, ...it.thematiques, ...it.caracteres, ...it.donnees].join(" "));
+});
+
+const state = { q: "", sel: {} };
+
+function passes(item, skipKey) {
+  if (state.q && !item._hay.includes(norm(state.q))) return false;
+  return FILTERS.every(f => f.key === skipKey || !state.sel[f.key] || valuesOf(item, f).includes(state.sel[f.key]));
+}
+
+/* ---------- Construction des listes déroulantes ---------- */
+const selects = {};
+FILTERS.forEach(f => {
+  const wrap = document.createElement("div");
+  wrap.className = "field";
+  wrap.innerHTML = `<label for="f-${f.key}">${esc(f.label)}</label><select id="f-${f.key}"></select>`;
+  $("#filters").appendChild(wrap);
+  const sel = wrap.querySelector("select");
+  sel.addEventListener("change", () => { state.sel[f.key] = sel.value; render(); });
+  selects[f.key] = sel;
+});
+
+function refreshSelects() {
+  FILTERS.forEach(f => {
+    const pool = DATA.filter(it => passes(it, f.key));
+    const counts = {};
+    DATA.forEach(it => valuesOf(it, f).forEach(v => { counts[v] = counts[v] || 0; }));
+    pool.forEach(it => valuesOf(it, f).forEach(v => { counts[v]++; }));
+    const current = state.sel[f.key] || "";
+    const opts = Object.keys(counts).sort((a, b) => a.localeCompare(b, "fr"))
+      .map(v => `<option value="${esc(v)}"${counts[v] === 0 && v !== current ? " disabled" : ""}${v === current ? " selected" : ""}>${esc(v)} (${counts[v]})</option>`);
+    selects[f.key].innerHTML = `<option value="">Tous</option>` + opts.join("");
+    selects[f.key].value = current;
+  });
+}
+
+/* ---------- Affichage des résultats ---------- */
+function mediaHtml(it) {
+  return it.photo
+    ? `<div class="media"><img src="${esc(it.photo)}" alt="${esc(it.nom)}" loading="lazy"></div>`
+    : `<div class="media" aria-hidden="true">${esc(it.type)}</div>`;
+}
+
+function render() {
+  refreshSelects();
+  const list = DATA.filter(it => passes(it, null)).sort((a, b) => a.nom.localeCompare(b.nom, "fr"));
+  $("#count").textContent = list.length + (list.length > 1 ? " équipements" : " équipement");
+
+  const active = FILTERS.filter(f => state.sel[f.key]);
+  $("#chips").innerHTML = active.map(f =>
+    `<button class="chip" type="button" data-remove="${f.key}" aria-label="Retirer le filtre ${esc(f.label)} : ${esc(state.sel[f.key])}">${esc(f.label)} : ${esc(state.sel[f.key])} ×</button>`).join(" ");
+  $("#reset").hidden = !(active.length || state.q);
+
+  $("#results").innerHTML = list.length ? list.map(it => `
+    <article class="card">
+      ${mediaHtml(it)}
+      <div class="body">
+        <h3><button class="open" type="button" data-open="${esc(it.id)}">${esc(it.nom)}</button></h3>
+        <p class="meta">${esc(it.unite)} – ${esc(it.region)}</p>
+        <div class="tags">${it.especes.map(e => `<span class="tag">${esc(e)}</span>`).join("")}</div>
+      </div>
+    </article>`).join("")
+  : `<div class="empty"><p>Aucun équipement ne correspond à ces critères. Retirez un filtre pour élargir la recherche.</p><button class="btn ghost" type="button" data-reset>Réinitialiser les filtres</button></div>`;
+}
+
+function resetAll() { state.q = ""; state.sel = {}; $("#q").value = ""; render(); }
+
+$("#q").addEventListener("input", e => { state.q = e.target.value.trim(); render(); });
+$("#reset").addEventListener("click", resetAll);
+$("#chips").addEventListener("click", e => {
+  const b = e.target.closest("[data-remove]");
+  if (b) { state.sel[b.dataset.remove] = ""; render(); }
+});
+$("#results").addEventListener("click", e => {
+  const o = e.target.closest("[data-open]");
+  if (o) openDetail(o.dataset.open);
+  if (e.target.closest("[data-reset]")) resetAll();
+});
+
+/* ---------- Fiche détaillée ---------- */
+const dlg = $("#detail");
+const tagList = arr => `<div class="tags">${arr.map(v => `<span class="tag">${esc(v)}</span>`).join("")}</div>`;
+
+function openDetail(id) {
+  const it = DATA.find(x => x.id === id);
+  if (!it) return;
+  $("#dtitle").textContent = it.nom;
+  $("#dbody").innerHTML = `
+    ${mediaHtml(it)}
+    <p>${esc(it.description)}</p>
+    <dl>
+      <dt>Type d'équipement</dt><dd>${esc(it.type)}</dd>
+      <dt>Unité expérimentale</dt><dd>${esc(it.unite)}</dd>
+      <dt>Région</dt><dd>${esc(it.region)}</dd>
+      <dt>Espèces</dt><dd>${tagList(it.especes)}</dd>
+      <dt>Thématiques de recherche</dt><dd>${tagList(it.thematiques)}</dd>
+      <dt>Caractères mesurés</dt><dd>${tagList(it.caracteres)}</dd>
+      <dt>Types de données</dt><dd>${tagList(it.donnees)}</dd>
+      <dt>Entreprise</dt><dd>${esc(it.entreprise)}</dd>
+      <dt>Contact</dt><dd>${esc(it.contact)}</dd>
+    </dl>`;
+  if (!dlg.open) dlg.showModal();
+  if (location.hash !== "#fiche-" + id) history.replaceState(null, "", "#fiche-" + id);
+}
+
+$("#dclose").addEventListener("click", () => dlg.close());
+dlg.addEventListener("click", e => { if (e.target === dlg) dlg.close(); });
+dlg.addEventListener("close", () => {
+  if (location.hash.startsWith("#fiche-")) history.replaceState(null, "", location.pathname + location.search);
+});
+window.addEventListener("hashchange", () => {
+  if (location.hash.startsWith("#fiche-")) openDetail(location.hash.slice(7));
+  else if (dlg.open) dlg.close();
+});
+
+/* ---------- Bouton « Proposer un équipement » ---------- */
+let toastTimer;
+$("#propose").addEventListener("click", e => {
+  if (CONFIG.formUrl) { e.currentTarget.href = CONFIG.formUrl; e.currentTarget.target = "_blank"; e.currentTarget.rel = "noopener"; return; }
+  e.preventDefault();
+  const t = $("#toast");
+  t.textContent = "Le formulaire n'est pas encore relié : il le sera à l'étape Grist.";
+  t.classList.add("on");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("on"), 4000);
+});
+
+/* ---------- Mobile : filtres repliables ---------- */
+const mq = window.matchMedia("(max-width: 899px)");
+const syncFilters = () => { $("#filtres").open = !mq.matches; };
+mq.addEventListener("change", syncFilters);
+syncFilters();
+
+/* ---------- Démarrage ---------- */
+$("#demo").hidden = !CONFIG.demo;
+render();
+if (location.hash.startsWith("#fiche-")) openDetail(location.hash.slice(7));
+</script>
+</body>
+</html>
