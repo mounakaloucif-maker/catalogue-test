@@ -25,8 +25,8 @@ body{margin:0;background:var(--paper);line-height:1.5;font-size:1rem}
 :focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 
 /* En-tête */
-.top{display:flex;gap:1.5rem;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;padding:2rem clamp(1rem,4vw,3rem) 1.5rem}
-.top h1{margin:0 0 .35rem;font-size:clamp(1.7rem,3.2vw,2.5rem);line-height:1.1;letter-spacing:-.02em;color:var(--forest);font-weight:700}
+.top{display:flex;gap:1.5rem;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;padding:1.25rem clamp(1rem,4vw,3rem) 1rem}
+.top h1{margin:0 0 .35rem;font-size:clamp(1.5rem,2.6vw,2rem);line-height:1.1;letter-spacing:-.02em;color:var(--forest);font-weight:700}
 .top p{margin:0;max-width:62ch;color:var(--mute)}
 .btn{display:inline-block;border:2px solid var(--forest);background:var(--forest);color:#fff;font:inherit;font-weight:600;padding:.65rem 1.1rem;border-radius:8px;text-decoration:none;cursor:pointer}
 .btn:hover{background:#0f2a16}
@@ -34,13 +34,13 @@ body{margin:0;background:var(--paper);line-height:1.5;font-size:1rem}
 .btn.ghost:hover{background:var(--lime-soft)}
 
 /* Mise en page */
-.layout{display:grid;grid-template-columns:330px minmax(0,1fr);align-items:start}
-aside{background:var(--lime);color:var(--forest);padding:1.25rem 1.5rem 2rem;min-height:100%}
+.layout{display:grid;grid-template-columns:280px minmax(0,1fr);align-items:start}
+aside{background:var(--lime);color:var(--forest);padding:1rem 1.2rem 1.5rem;min-height:100%}
 aside summary{font-size:1.25rem;font-weight:700;cursor:pointer;margin-bottom:1rem;list-style:none}
 aside summary::-webkit-details-marker{display:none}
-.field{margin-bottom:1.1rem}
-.field label{display:block;font-size:1.05rem;font-weight:600;margin-bottom:.3rem}
-.field select,.field input{width:100%;font:inherit;color:var(--ink);background:#fff;border:1px solid #8aa11f;border-radius:6px;padding:.55rem .6rem}
+.field{margin-bottom:.8rem}
+.field label{display:block;font-size:.98rem;font-weight:600;margin-bottom:.2rem}
+.field select,.field input{width:100%;font:inherit;color:var(--ink);background:#fff;border:1px solid #8aa11f;border-radius:6px;padding:.4rem .5rem}
 .field select option:disabled{color:#9aa39b}
 main{padding:0 clamp(1rem,4vw,3rem) 3rem}
 
@@ -53,14 +53,16 @@ main{padding:0 clamp(1rem,4vw,3rem) 3rem}
 .notice{background:var(--lime-soft);border:1px solid #b9cf63;border-radius:8px;padding:.6rem .9rem;margin-bottom:1rem;font-size:.95rem}
 
 /* Fiches */
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:1.1rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:.9rem}
 .card{position:relative;background:var(--card);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column}
 .card:hover{border-color:var(--forest)}
 .media{aspect-ratio:16/10;display:grid;place-items:center;text-align:center;padding:.8rem;color:var(--forest);font-weight:600;
   background:repeating-linear-gradient(135deg,var(--lime-soft) 0 12px,#dcedA0 12px 24px)}
 .media img{width:100%;height:100%;object-fit:cover;display:block}
-.body{padding:.9rem 1rem 1.1rem;display:flex;flex-direction:column;gap:.45rem;flex:1}
-.body h3{margin:0;font-size:1.12rem;line-height:1.25}
+.media.ph{aspect-ratio:auto;justify-items:start;text-align:left;padding:.5rem .9rem;font-size:.9rem;background:var(--lime-soft);border-bottom:1px solid var(--line)}
+.more{grid-column:1/-1;text-align:center;margin-top:.4rem}
+.body{padding:.75rem .9rem .9rem;display:flex;flex-direction:column;gap:.35rem;flex:1}
+.body h3{margin:0;font-size:1.02rem;line-height:1.25}
 .open{font:inherit;font-weight:700;color:var(--forest);background:none;border:0;padding:0;text-align:left;cursor:pointer}
 .open::after{content:"";position:absolute;inset:0}
 .meta{margin:0;color:var(--mute);font-size:.92rem}
@@ -139,10 +141,14 @@ dd .tags{padding:0;margin:0}
 
 <script>
 /* ---------- Réglages ---------- */
+/* Serveurs Grist autorisés à fournir le script de liaison (grist-plugin-api.js). Ajouter ici une autre instance si besoin. */
+const ALLOWED_GRIST = ["https://docs.getgrist.com", "https://grist.numerique.gouv.fr"];
+const allowedOrigin = o => ALLOWED_GRIST.includes(o) || /^https:\/\/[a-z0-9-]+\.getgrist\.com$/.test(o || "");
+
 const params = new URLSearchParams(location.search);
 const CONFIG = {
   // Adresse du formulaire « Proposer un équipement » (ou l'ajouter à l'adresse du widget : ...?form=https://...)
-  formUrl: params.get("form") || "",
+  formUrl: /^https:\/\//i.test(params.get("form") || "") ? params.get("form") : "",
   // Serveur Grist (laisser vide : détection automatique ; ou ...?grist=https://mon-grist.exemple.fr)
   gristOrigin: params.get("grist") || ""
 };
@@ -210,14 +216,14 @@ const DEMO_DATA = [
 
 /* ---------- Filtres (ordre d'affichage) ---------- */
 const FILTERS = [
-  {key:"type",        label:"Type d'équipement"},
-  {key:"unite",       label:"Unité expérimentale"},
-  {key:"especes",     label:"Espèce"},
-  {key:"thematiques", label:"Thématique de recherche"},
-  {key:"caracteres",  label:"Caractère mesuré"},
-  {key:"donnees",     label:"Type de données"},
-  {key:"entreprise",  label:"Entreprise"},
-  {key:"region",      label:"Région"}
+  {key:"famille",    label:"Famille d'équipement"},
+  {key:"type",       label:"Type d'équipement"},
+  {key:"unite",      label:"Unité expérimentale"},
+  {key:"site",       label:"Site"},
+  {key:"especes",    label:"Espèce"},
+  {key:"categories", label:"Thématique de recherche"},
+  {key:"caracteres", label:"Caractère mesuré"},
+  {key:"donnees",    label:"Type de données"}
 ];
 
 /* ---------- Outils ---------- */
@@ -235,15 +241,20 @@ let waitedTooLong = false;   // plus de 6 secondes sans données
 const FIELD_ALIASES = {
   id:          ["id2", "identifiant", "slug"],
   nom:         ["nom", "nomequipement", "nomdelequipement", "equipement", "titre", "intitule"],
-  type:        ["type", "typedequipement"],
+  famille:     ["famille", "familledequipement"],
+  type:        ["typeprecis", "type", "typedequipement"],
   unite:       ["unite", "uniteexperimentale", "ue"],
-  region:      ["region"],
+  site:        ["site", "sites"],
   especes:     ["especes", "espece"],
-  thematiques: ["thematiques", "thematique", "thematiquederecherche", "thematiquesderecherche"],
+  animaux:     ["typesanimaux", "typeanimal", "typesdanimaux"],
+  categories:  ["categories", "grandescategories", "thematiques", "thematique", "thematiquederecherche", "thematiquesderecherche"],
   caracteres:  ["caracteres", "caractere", "caracteremesure", "caracteresmesures"],
+  complement:  ["complementcaractere", "complementcaracteremesure"],
   donnees:     ["donnees", "typededonnees", "typesdedonnees", "typedonnees"],
-  entreprise:  ["entreprise", "entreprises", "constructeur", "fabricant"],
-  description: ["description", "presentation", "resume"],
+  nombre:      ["nombre"],
+  annee:       ["annee", "anneedacquisition"],
+  acces:       ["acces"],
+  description: ["descriptif", "description", "presentation", "resume"],
   contact:     ["contact", "contacts"],
   photo:       ["photo", "image", "illustration"]
 };
@@ -267,14 +278,19 @@ function fromRecord(rec) {
   return {
     id: String(get("id") || rec.id),
     nom: String(get("nom") || "(sans nom)"),
+    famille: String(get("famille")),
     type: String(get("type")),
     unite: String(get("unite")),
-    region: String(get("region")),
+    site: String(get("site")),
     especes: asList(get("especes")),
-    thematiques: asList(get("thematiques")),
+    animaux: asList(get("animaux")),
+    categories: asList(get("categories")),
     caracteres: asList(get("caracteres")),
+    complement: String(get("complement")),
     donnees: asList(get("donnees")),
-    entreprise: String(get("entreprise")),
+    nombre: String(get("nombre")),
+    annee: String(get("annee")),
+    acces: String(get("acces")),
     description: String(get("description")),
     contact: String(get("contact")),
     photo: typeof photo === "string" ? photo : ""
@@ -284,13 +300,15 @@ function fromRecord(rec) {
 function setData(list) {
   DATA = list;
   DATA.forEach(it => {
-    it._hay = norm([it.nom, it.description, it.type, it.unite, it.region, it.entreprise,
-      ...it.especes, ...it.thematiques, ...it.caracteres, ...it.donnees].join(" "));
+    it._hay = norm([it.nom, it.description, it.famille, it.type, it.unite, it.site, it.complement,
+      ...it.especes, ...it.animaux, ...it.categories, ...it.caracteres, ...it.donnees].join(" "));
   });
   render();
 }
 
 const state = { q: "", sel: {} };
+const PAGE = 12;            // nombre de fiches affichées à la fois
+let shown = PAGE, lastSig = "";
 
 function passes(item, skipKey) {
   if (state.q && !item._hay.includes(norm(state.q))) return false;
@@ -321,6 +339,7 @@ function refreshSelects() {
       .map(v => `<option value="${esc(v)}"${counts[v] === 0 && v !== current ? " disabled" : ""}${v === current ? " selected" : ""}>${esc(v)} (${counts[v]})</option>`);
     selects[f.key].innerHTML = `<option value="">Tous</option>` + opts.join("");
     selects[f.key].value = current;
+    selects[f.key].parentElement.hidden = Object.keys(counts).length === 0;
   });
 }
 
@@ -328,7 +347,7 @@ function refreshSelects() {
 function mediaHtml(it) {
   return it.photo
     ? `<div class="media"><img src="${esc(it.photo)}" alt="${esc(it.nom)}" loading="lazy"></div>`
-    : `<div class="media" aria-hidden="true">${esc(it.type)}</div>`;
+    : `<div class="media ph" aria-hidden="true">${esc(it.famille || it.type)}</div>`;
 }
 
 function render() {
@@ -341,15 +360,18 @@ function render() {
     `<button class="chip" type="button" data-remove="${f.key}" aria-label="Retirer le filtre ${esc(f.label)} : ${esc(state.sel[f.key])}">${esc(f.label)} : ${esc(state.sel[f.key])} ×</button>`).join(" ");
   $("#reset").hidden = !(active.length || state.q);
 
-  $("#results").innerHTML = list.length ? list.map(it => `
+  const sig = JSON.stringify([state.q, state.sel]);
+  if (sig !== lastSig) { shown = PAGE; lastSig = sig; }
+
+  $("#results").innerHTML = list.length ? list.slice(0, shown).map(it => `
     <article class="card">
       ${mediaHtml(it)}
       <div class="body">
         <h3><button class="open" type="button" data-open="${esc(it.id)}">${esc(it.nom)}</button></h3>
-        <p class="meta">${esc(it.unite)} – ${esc(it.region)}</p>
+        <p class="meta">${esc(it.unite)}${it.site ? " – " + esc(it.site) : ""}</p>
         <div class="tags">${it.especes.map(e => `<span class="tag">${esc(e)}</span>`).join("")}</div>
       </div>
-    </article>`).join("")
+    </article>`).join("") + (list.length > shown ? `<div class="more"><button class="btn ghost" type="button" data-more>Afficher plus d'équipements (${list.length - shown} restants)</button></div>` : "")
   : `<div class="empty"><p>${DATA.length ? "Aucun équipement ne correspond à ces critères. Retirez un filtre pour élargir la recherche." : emptyMessage()}</p>${DATA.length ? '<button class="btn ghost" type="button" data-reset>Réinitialiser les filtres</button>' : ""}</div>`;
 }
 
@@ -369,6 +391,7 @@ $("#chips").addEventListener("click", e => {
   if (b) { state.sel[b.dataset.remove] = ""; render(); }
 });
 $("#results").addEventListener("click", e => {
+  if (e.target.closest("[data-more]")) { shown += PAGE; render(); return; }
   const o = e.target.closest("[data-open]");
   if (o) openDetail(o.dataset.open);
   if (e.target.closest("[data-reset]")) resetAll();
@@ -385,17 +408,21 @@ function openDetail(id) {
   $("#dbody").innerHTML = `
     ${mediaHtml(it)}
     <p>${esc(it.description)}</p>
-    <dl>
-      <dt>Type d'équipement</dt><dd>${esc(it.type)}</dd>
-      <dt>Unité expérimentale</dt><dd>${esc(it.unite)}</dd>
-      <dt>Région</dt><dd>${esc(it.region)}</dd>
-      <dt>Espèces</dt><dd>${tagList(it.especes)}</dd>
-      <dt>Thématiques de recherche</dt><dd>${tagList(it.thematiques)}</dd>
-      <dt>Caractères mesurés</dt><dd>${tagList(it.caracteres)}</dd>
-      <dt>Types de données</dt><dd>${tagList(it.donnees)}</dd>
-      <dt>Entreprise</dt><dd>${esc(it.entreprise)}</dd>
-      <dt>Contact</dt><dd>${esc(it.contact)}</dd>
-    </dl>`;
+    <dl>${[
+      ["Famille", it.famille ? esc(it.famille) : ""],
+      ["Type d'équipement", it.type ? esc(it.type) : ""],
+      ["Unité expérimentale", it.unite ? esc(it.unite) : ""],
+      ["Site", it.site ? esc(it.site) : ""],
+      ["Espèces", it.especes.length ? tagList(it.especes) : ""],
+      ["Types d'animaux", it.animaux.length ? tagList(it.animaux) : ""],
+      ["Thématiques de recherche", it.categories.length ? tagList(it.categories) : ""],
+      ["Caractères mesurés", it.caracteres.length ? tagList(it.caracteres) + (it.complement ? "<p>" + esc(it.complement) + "</p>" : "") : ""],
+      ["Types de données", it.donnees.length ? tagList(it.donnees) : ""],
+      ["Nombre d'appareils", it.nombre ? esc(it.nombre) : ""],
+      ["Année d'acquisition", it.annee ? esc(it.annee) : ""],
+      ["Accès", it.acces ? esc(it.acces) : ""],
+      ["Contact", it.contact ? esc(it.contact) : ""]
+    ].filter(r => r[1]).map(r => `<dt>${r[0]}</dt><dd>${r[1]}</dd>`).join("")}</dl>`;
   if (!dlg.open) dlg.showModal();
   const h = "#fiche-" + encodeURIComponent(id);
   if (location.hash !== h) history.replaceState(null, "", h);
@@ -437,7 +464,9 @@ function openFromHash() {
 function startDemo() {
   mode = "demo";
   $("#demo").hidden = false;
-  setData(DEMO_DATA.map(it => Object.assign({}, it)));
+  setData(DEMO_DATA.map(it => Object.assign({}, it, {
+    famille: it.type, site: it.region, categories: it.thematiques, animaux: [], complement: "", nombre: "", annee: "", acces: ""
+  })));
   openFromHash();
 }
 
@@ -459,10 +488,10 @@ if (window.self === window.top) {
   startDemo();                       // page ouverte seule : données fictives
 } else {
   let origin = CONFIG.gristOrigin;   // page affichée dans Grist : lecture du tableau
-  if (!origin) {
+  if (!allowedOrigin(origin)) {
     try { origin = new URL(document.referrer).origin; } catch (e) { origin = ""; }
   }
-  if (!origin || origin === location.origin) origin = "https://docs.getgrist.com";
+  if (!allowedOrigin(origin)) origin = "https://docs.getgrist.com";
   mode = "grist";
   render();
   startGrist(origin);
